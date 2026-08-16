@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Penguin Species Predictor</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 500px;
+        margin: 50px auto;
+        background-color: #f4f6f8;
+        padding: 20px;
+    }
+    h2 {
+        text-align: center;
+        color: #2c3e50;
+    }
+    label {
+        display: block;
+        margin-top: 12px;
+        font-weight: bold;
+        color: #34495e;
+    }
+    input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 4px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    button {
+        margin-top: 20px;
+        width: 100%;
+        padding: 10px;
+        background-color: #2980b9;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #1f6690;
+    }
+    #result {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 4px;
+        background-color: #eafaf1;
+        border: 1px solid #2ecc71;
+        display: none;
+        text-align: center;
+        font-size: 18px;
+    }
+    #result.error {
+        background-color: #fdecea;
+        border: 1px solid #e74c3c;
+    }
+</style>
+</head>
+<body>
+
+<h2>🐧 Penguin Species Predictor</h2>
+
+<form id="predictForm">
+    <label for="bill_length_mm">Bill Length (mm)</label>
+    <input type="number" step="any" id="bill_length_mm" required>
+
+    <label for="bill_depth_mm">Bill Depth (mm)</label>
+    <input type="number" step="any" id="bill_depth_mm" required>
+
+    <label for="flipper_length_mm">Flipper Length (mm)</label>
+    <input type="number" step="any" id="flipper_length_mm" required>
+
+    <label for="body_mass_g">Body Mass (g)</label>
+    <input type="number" step="any" id="body_mass_g" required>
+
+    <button type="submit">Predict Species</button>
+</form>
+
+<div id="result"></div>
+
+<script>
+    const form = document.getElementById('predictForm');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault(); // stop normal form submission (page reload)
+
+        const payload = {
+            bill_length_mm: parseFloat(document.getElementById('bill_length_mm').value),
+            bill_depth_mm: parseFloat(document.getElementById('bill_depth_mm').value),
+            flipper_length_mm: parseFloat(document.getElementById('flipper_length_mm').value),
+            body_mass_g: parseFloat(document.getElementById('body_mass_g').value)
+        };
+
+        resultDiv.style.display = 'block';
+        resultDiv.className = '';
+        resultDiv.innerText = 'Predicting...';
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error('Server error: ' + response.status);
+            }
+
+            const data = await response.json();
+
+            resultDiv.innerHTML =
+                `<strong>Predicted Species:</strong> ${data.predicted_species} <br>
+                 <strong>Confidence:</strong> ${(data.confidence * 100).toFixed(1)}%`;
+
+        } catch (error) {
+            resultDiv.classList.add('error');
+            resultDiv.innerText = 'Error: could not get prediction. ' + error.message;
+        }
+    });
+</script>
+
+</body>
+</html>
